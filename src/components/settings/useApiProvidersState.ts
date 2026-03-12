@@ -51,10 +51,12 @@ export function useApiProvidersState({ tab, t }: { tab: SettingsTab; t: TFunctio
     try {
       const catalog = await api.getApiProviderPresets();
       setApiOfficialPresets(catalog.official_presets ?? {});
-      apiPresetsLoadedRef.current = true;
     } catch (error) {
       console.error("Failed to load API provider presets:", error);
     } finally {
+      // Stop the effect from tight-loop retrying after a failed request.
+      // Users can still retry explicitly via the API tab refresh action.
+      apiPresetsLoadedRef.current = true;
       setApiPresetsLoading(false);
     }
   }, []);
@@ -231,6 +233,7 @@ export function useApiProvidersState({ tab, t }: { tab: SettingsTab; t: TFunctio
     setApiModelsExpanded,
     setApiAssignTarget,
     loadApiProviders,
+    loadApiPresets,
     handleApiProviderSave,
     handleApiProviderDelete,
     handleApiProviderTest,

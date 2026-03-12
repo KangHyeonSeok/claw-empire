@@ -124,6 +124,7 @@ export interface ApiStateBundle {
   setApiModelsExpanded: Dispatch<SetStateAction<Record<string, boolean>>>;
   setApiAssignTarget: Dispatch<SetStateAction<ApiAssignTarget | null>>;
   loadApiProviders: () => Promise<void>;
+  loadApiPresets: () => Promise<void>;
   handleApiProviderSave: () => Promise<void>;
   handleApiProviderDelete: (id: string) => Promise<void>;
   handleApiProviderTest: (id: string) => Promise<void>;

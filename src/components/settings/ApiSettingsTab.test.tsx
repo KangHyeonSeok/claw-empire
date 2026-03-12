@@ -71,6 +71,7 @@ function TestHarness({ providers = [], addMode = true }: { providers?: ApiProvid
     setApiModelsExpanded,
     setApiAssignTarget,
     loadApiProviders: async () => {},
+    loadApiPresets: async () => {},
     handleApiProviderSave: async () => {},
     handleApiProviderDelete: async () => {},
     handleApiProviderTest: async () => {},
@@ -147,5 +148,64 @@ describe("ApiSettingsTab", () => {
     await user.click(screen.getByRole("button", { name: /Models \(2\)/ }));
     expect(screen.getByText("qwen3.5-plus")).toBeInTheDocument();
     expect(screen.getByText("glm-5")).toBeInTheDocument();
+  });
+
+  it("retries presets through the refresh button instead of auto-looping silently", async () => {
+    const user = userEvent.setup();
+    const loadApiProviders = vi.fn(async () => {});
+    const loadApiPresets = vi.fn(async () => {});
+    const apiAddMode = false;
+    const setApiAddMode = vi.fn();
+    const apiEditingId = null;
+    const setApiEditingId = vi.fn();
+    const apiForm = DEFAULT_API_FORM;
+    const setApiForm = vi.fn();
+    const apiSaveError = "load failed";
+    const setApiSaveError = vi.fn();
+    const apiModelsExpanded = {};
+    const setApiModelsExpanded = vi.fn();
+    const apiAssignTarget = null;
+    const setApiAssignTarget = vi.fn();
+
+    const apiState: ApiStateBundle = {
+      apiProviders: [],
+      apiProvidersLoading: false,
+      apiOfficialPresets: {},
+      apiPresetsLoading: false,
+      apiAddMode,
+      apiEditingId,
+      apiForm,
+      apiSaving: false,
+      apiSaveError,
+      apiTesting: null,
+      apiTestResult: {},
+      apiModelsExpanded,
+      apiAssignTarget,
+      apiAssignAgents: [],
+      apiAssignDepts: [],
+      apiAssigning: false,
+      setApiAddMode,
+      setApiEditingId,
+      setApiForm,
+      setApiSaveError,
+      setApiModelsExpanded,
+      setApiAssignTarget,
+      loadApiProviders,
+      loadApiPresets,
+      handleApiProviderSave: async () => {},
+      handleApiProviderDelete: async () => {},
+      handleApiProviderTest: async () => {},
+      handleApiProviderToggle: async () => {},
+      handleApiEditStart: () => {},
+      handleApiModelAssign: async () => {},
+      handleApiAssignToAgent: async () => {},
+    };
+
+    render(<ApiSettingsTab t={t} localeTag="en-US" apiState={apiState} />);
+
+    await user.click(screen.getByRole("button", { name: "Refresh" }));
+
+    expect(loadApiProviders).toHaveBeenCalledTimes(1);
+    expect(loadApiPresets).toHaveBeenCalledTimes(1);
   });
 });

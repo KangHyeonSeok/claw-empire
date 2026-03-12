@@ -200,6 +200,116 @@ describe("api provider routes", () => {
       db.close();
     }
   });
+
+  it("replaces stale cached models when switching into a preset", async () => {
+    const { app, db } = await createHarness();
+
+    try {
+      const insertResult = db
+        .prepare(
+          `
+            INSERT INTO api_providers (
+              id, name, type, base_url, enabled, models_cache, models_cached_at, created_at, updated_at
+            )
+            VALUES (?, ?, ?, ?, 1, ?, ?, ?, ?)
+          `,
+        )
+        .run(
+          "provider-stale-cache",
+          "Legacy",
+          "openai",
+          "https://api.openai.com/v1",
+          JSON.stringify(["gpt-4.1", "claude-3-7-sonnet"]),
+          999,
+          1_000,
+          1_000,
+        );
+
+      expect(insertResult.changes).toBe(1);
+
+      const response = await request(app).put("/api/api-providers/provider-stale-cache").send({
+        preset_key: "opencode-go-openai",
+      });
+
+      expect(response.status).toBe(200);
+
+      const row = db
+        .prepare("SELECT preset_key, type, base_url, models_cache, models_cached_at FROM api_providers WHERE id = ?")
+        .get("provider-stale-cache") as {
+        preset_key: string | null;
+        type: string;
+        base_url: string;
+        models_cache: string | null;
+        models_cached_at: number | null;
+      };
+
+      expect(row.preset_key).toBe("opencode-go-openai");
+      expect(row.type).toBe("openai");
+      expect(row.base_url).toBe("https://opencode.ai/zen/go/v1");
+      expect(JSON.parse(String(row.models_cache))).toEqual(["glm-5", "kimi-k2.5"]);
+      expect(row.models_cached_at).toBe(1_717_171_717_000);
+    } finally {
+      db.close();
+    }
+  });
+
+  it("clears cached models when leaving preset mode", async () => {
+    const { app, db } = await createHarness();
+
+    try {
+      const insertResult = db
+        .prepare(
+          `
+            INSERT INTO api_providers (
+              id, name, type, base_url, preset_key, enabled, models_cache, models_cached_at, created_at, updated_at
+            )
+            VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?, ?)
+          `,
+        )
+        .run(
+          "provider-leave-preset",
+          "Preset Provider",
+          "openai",
+          "https://opencode.ai/zen/go/v1",
+          "opencode-go-openai",
+          JSON.stringify(["glm-5", "kimi-k2.5"]),
+          1_111,
+          1_000,
+          1_000,
+        );
+
+      expect(insertResult.changes).toBe(1);
+
+      const response = await request(app).put("/api/api-providers/provider-leave-preset").send({
+        preset_key: null,
+        type: "custom",
+        base_url: "https://custom.example/v1",
+      });
+
+      expect(response.status).toBe(200);
+
+      const row = db
+        .prepare("SELECT preset_key, type, base_url, models_cache, models_cached_at FROM api_providers WHERE id = ?")
+        .get("provider-leave-preset") as {
+        preset_key: string | null;
+        type: string;
+        base_url: string;
+        models_cache: string | null;
+        models_cached_at: number | null;
+      };
+
+      expect(row).toEqual({
+        preset_key: null,
+        type: "custom",
+        base_url: "https://custom.example/v1",
+        models_cache: null,
+        models_cached_at: null,
+      });
+    } finally {
+      db.close();
+    }
+  });
+
   it("merges fetched models with preset fallback models during test", async () => {
     const { app, db } = await createHarness();
 

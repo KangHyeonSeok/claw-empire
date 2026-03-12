@@ -361,6 +361,17 @@ export function registerApiProviderRoutes({ app, db, nowMs }: RegisterApiProvide
     const existingPresetKey = existingPreset?.key ?? null;
     const incomingApiKey = "api_key" in body ? (typeof body.api_key === "string" ? body.api_key.trim() : "") : null;
     const isPresetTransition = presetKeyInput != null && presetKeyInput.presetKey !== existingPresetKey;
+    const nextManualType = "type" in body && isApiProviderType(body.type) ? body.type : row.type;
+    const nextManualBaseUrl =
+      "base_url" in body && typeof body.base_url === "string" && body.base_url.trim()
+        ? body.base_url.trim().replace(/\/+$/, "")
+        : row.base_url;
+    const nextType = officialPreset?.type ?? nextManualType;
+    const nextBaseUrl = officialPreset?.base_url ?? nextManualBaseUrl;
+    const shouldInvalidateModelCache =
+      nextPresetKey !== existingPresetKey ||
+      nextType !== row.type ||
+      normalizeApiBaseUrl(nextBaseUrl) !== normalizeApiBaseUrl(row.base_url);
 
     if ("name" in body && typeof body.name === "string" && body.name.trim()) {
       updates.push("name = ?");
@@ -389,14 +400,16 @@ export function registerApiProviderRoutes({ app, db, nowMs }: RegisterApiProvide
       updates.push("base_url = ?");
       params.push(officialPreset.base_url);
 
-      const mergedModels = mergeModelLists(officialPreset.fallback_models, parseModelsCache(row.models_cache));
+      const mergedModels = shouldInvalidateModelCache
+        ? mergeModelLists(officialPreset.fallback_models)
+        : mergeModelLists(officialPreset.fallback_models, parseModelsCache(row.models_cache));
       if (mergedModels.length > 0) {
         const mergedJson = JSON.stringify(mergedModels);
-        if (mergedJson !== (row.models_cache ?? "") || row.models_cached_at == null) {
+        if (shouldInvalidateModelCache || mergedJson !== (row.models_cache ?? "") || row.models_cached_at == null) {
           updates.push("models_cache = ?");
           params.push(mergedJson);
           updates.push("models_cached_at = ?");
-          params.push(row.models_cached_at ?? now);
+          params.push(shouldInvalidateModelCache ? now : (row.models_cached_at ?? now));
         }
       }
     } else {
@@ -411,6 +424,12 @@ export function registerApiProviderRoutes({ app, db, nowMs }: RegisterApiProvide
       if ("base_url" in body && typeof body.base_url === "string" && body.base_url.trim()) {
         updates.push("base_url = ?");
         params.push(body.base_url.trim().replace(/\/+$/, ""));
+      }
+      if (shouldInvalidateModelCache) {
+        updates.push("models_cache = ?");
+        params.push(null);
+        updates.push("models_cached_at = ?");
+        params.push(null);
       }
     }
 

@@ -29,6 +29,7 @@ export default function ApiSettingsTab({ t, localeTag, apiState }: ApiSettingsTa
     setApiSaveError,
     setApiModelsExpanded,
     loadApiProviders,
+    loadApiPresets,
     handleApiProviderSave,
     handleApiProviderDelete,
     handleApiProviderTest,
@@ -63,8 +64,10 @@ export default function ApiSettingsTab({ t, localeTag, apiState }: ApiSettingsTa
           </h3>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => void loadApiProviders()}
-              disabled={apiProvidersLoading}
+              onClick={() => {
+                void Promise.all([loadApiProviders(), loadApiPresets()]);
+              }}
+              disabled={apiProvidersLoading || apiPresetsLoading}
               className="text-xs text-blue-400 transition-colors hover:text-blue-300 disabled:opacity-50"
             >
               {t({ ko: "새로고침", en: "Refresh", ja: "更新", zh: "刷新" })}
