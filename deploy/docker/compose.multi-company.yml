@@ -27,30 +27,59 @@ x-claw-empire-service: &claw-empire-service
     retries: 5
 
 services:
-  company-alpha:
+  my-knit-log:
     <<: *claw-empire-service
-    container_name: claw-empire-company-alpha
+    container_name: claw-empire-my-knit-log
     env_file:
-      - ./runtime/company-alpha.env
+      - ./runtime/my-knit-log.env
     ports:
       - "8791:8790"
     volumes:
-      - company_alpha_data:/var/lib/claw-empire
-      - company_alpha_logs:/var/log/claw-empire
+      - my_knit_log_data:/var/lib/claw-empire
+      - my_knit_log_logs:/var/log/claw-empire
+      - shared_claude_auth:/home/app/.claude
+      - shared_codex_auth:/home/app/.codex
+      - shared_gemini_auth:/home/app/.gemini
+      - shared_opencode_auth:/home/app/.local/share/opencode
 
-  company-beta:
+  berry-mix:
     <<: *claw-empire-service
-    container_name: claw-empire-company-beta
+    container_name: claw-empire-berry-mix
     env_file:
-      - ./runtime/company-beta.env
+      - ./runtime/berry-mix.env
     ports:
       - "8792:8790"
     volumes:
-      - company_beta_data:/var/lib/claw-empire
-      - company_beta_logs:/var/log/claw-empire
+      - berry_mix_data:/var/lib/claw-empire
+      - berry_mix_logs:/var/log/claw-empire
+      - shared_claude_auth:/home/app/.claude
+      - shared_codex_auth:/home/app/.codex
+      - shared_gemini_auth:/home/app/.gemini
+      - shared_opencode_auth:/home/app/.local/share/opencode
+
+  world-creator:
+    <<: *claw-empire-service
+    container_name: claw-empire-world-creator
+    env_file:
+      - ./runtime/world-creator.env
+    ports:
+      - "8793:8790"
+    volumes:
+      - world_creator_data:/var/lib/claw-empire
+      - world_creator_logs:/var/log/claw-empire
+      - shared_claude_auth:/home/app/.claude
+      - shared_codex_auth:/home/app/.codex
+      - shared_gemini_auth:/home/app/.gemini
+      - shared_opencode_auth:/home/app/.local/share/opencode
 
 volumes:
-  company_alpha_data:
-  company_alpha_logs:
-  company_beta_data:
-  company_beta_logs:
+  my_knit_log_data:
+  my_knit_log_logs:
+  berry_mix_data:
+  berry_mix_logs:
+  world_creator_data:
+  world_creator_logs:
+  shared_claude_auth:
+  shared_codex_auth:
+  shared_gemini_auth:
+  shared_opencode_auth:

@@ -1,15 +1,24 @@
 {
   "name": "claw-empire-fleet",
   "image": "${CLAW_EMPIRE_IMAGE:-claw-empire:local}",
+  "sharedCliAuth": true,
   "companies": [
     {
-      "slug": "company-alpha",
+      "name": "MyKnitLog",
+      "slug": "my-knit-log",
       "hostPort": 8791,
       "publicHost": "localhost"
     },
     {
-      "slug": "company-beta",
+      "name": "BerryMix",
       "hostPort": 8792,
+      "slug": "berry-mix",
+      "publicHost": "localhost"
+    },
+    {
+      "name": "WorldCreator",
+      "slug": "world-creator",
+      "hostPort": 8793,
       "publicHost": "localhost"
     }
   ]

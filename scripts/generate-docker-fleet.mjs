@@ -12,6 +12,13 @@ const envTemplatePath = path.join(deployDockerDir, "company.env.template");
 const runtimeDir = path.join(deployDockerDir, "runtime");
 const outputPath = path.join(deployDockerDir, "compose.multi-company.yml");
 
+const SHARED_AUTH_VOLUMES = [
+  { volume: "shared_claude_auth", target: "/home/app/.claude" },
+  { volume: "shared_codex_auth", target: "/home/app/.codex" },
+  { volume: "shared_gemini_auth", target: "/home/app/.gemini" },
+  { volume: "shared_opencode_auth", target: "/home/app/.local/share/opencode" },
+];
+
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, "utf8"));
 }
@@ -38,6 +45,10 @@ function companyEnvPath(slug) {
   return `./runtime/${slug}.env`;
 }
 
+function isSharedCliAuthEnabled(config) {
+  return config.sharedCliAuth !== false;
+}
+
 function buildCompose(config) {
   const stackName = assertString(config.name, "name");
   const image = assertString(config.image, "image");
@@ -51,6 +62,7 @@ function buildCompose(config) {
   const volumeLines = [];
   const seenSlugs = new Set();
   const seenPorts = new Set();
+  const sharedCliAuthEnabled = isSharedCliAuthEnabled(config);
 
   for (const company of companies) {
     const slug = assertString(company.slug, "company.slug");
@@ -74,6 +86,11 @@ function buildCompose(config) {
     serviceLines.push(`    volumes:`);
     serviceLines.push(`      - ${dataVolume}:/var/lib/claw-empire`);
     serviceLines.push(`      - ${logsVolume}:/var/log/claw-empire`);
+    if (sharedCliAuthEnabled) {
+      for (const sharedVolume of SHARED_AUTH_VOLUMES) {
+        serviceLines.push(`      - ${sharedVolume.volume}:${sharedVolume.target}`);
+      }
+    }
     serviceLines.push("");
 
     volumeLines.push(`  ${dataVolume}:`);
@@ -113,6 +130,7 @@ function buildCompose(config) {
     ...serviceLines,
     "volumes:",
     ...volumeLines,
+    ...(sharedCliAuthEnabled ? SHARED_AUTH_VOLUMES.map((entry) => `  ${entry.volume}:`) : []),
     "",
   ].join("\n");
 }
