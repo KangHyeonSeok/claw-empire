@@ -1,21 +1,37 @@
 # Keep local secrets and env files out of Docker build context
-.env*
+.env
+.env.*
+!.env.example
+
+# Git metadata
+.git/
+.github/
+.gitignore
 
 # Local/runtime artifacts
-.git
-.gitignore
-node_modules
-data
-logs
-coverage
-playwright-report
+node_modules/
+data/
+logs/
+coverage/
+playwright-report/
+test-results/
+*.log
+*.pid
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.sqlite-journal
 
 # Build/test caches
-dist
-.tmp
+dist/
+.tmp/
 *.tsbuildinfo
+
+# Local docker runtime secrets
+deploy/docker/*.env
+deploy/docker/runtime/
 
 # OS/editor noise
 .DS_Store
-.vscode
-.idea
+.vscode/
+.idea/

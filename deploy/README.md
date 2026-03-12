@@ -7,6 +7,7 @@ Included files:
 - `deploy/.env.production.template`: runtime environment template
 - `deploy/claw-empire@.service`: example user-level systemd service
 - `deploy/nginx/claw-empire.conf`: example nginx reverse proxy
+- `deploy/docker/`: shared-image multi-company Docker example
 
 ## Assumptions
 
@@ -99,6 +100,14 @@ pnpm install
 pnpm run build
 systemctl --user restart claw-empire
 ```
+
+## Docker multi-company option
+
+If you want several companies to share one application image while keeping their data isolated, use the Docker example in `deploy/docker/`.
+
+- Shared code image, separate company volumes
+- One rebuild or image pull updates every company container
+- Example compose file: `deploy/docker/compose.multi-company.yml`
 
 ## Notes
 

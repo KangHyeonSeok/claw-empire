@@ -1,0 +1,16 @@
+{
+  "name": "claw-empire-fleet",
+  "image": "${CLAW_EMPIRE_IMAGE:-claw-empire:local}",
+  "companies": [
+    {
+      "slug": "company-alpha",
+      "hostPort": 8791,
+      "publicHost": "localhost"
+    },
+    {
+      "slug": "company-beta",
+      "hostPort": 8792,
+      "publicHost": "localhost"
+    }
+  ]
+}

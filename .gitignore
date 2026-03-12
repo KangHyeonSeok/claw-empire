@@ -18,6 +18,8 @@ custom-skills/
 .env
 .env.*
 !.env.example
+deploy/docker/*.env
+deploy/docker/runtime/
 .direnv/
 *.pem
 *.key
