@@ -76,6 +76,7 @@ Claw-Empire는 **CLI**, **OAuth**, **직접 API 키** 방식으로 연결된 AI 
 - **Settings > API에서 공식 direct API 프리셋을 바로 쓸 수 있습니다** - OpenCode Go와 Bailian Coding Plan 프리셋이 Base URL 고정, fallback 모델 시드, 명시적 refresh/retry 흐름을 제공합니다.
 - **Kimi Code가 end-to-end 프로바이더로 들어왔습니다** - CLI 실행, provider 라벨, 스킬 learn/unlearn, prompt skill 노출, video-preprod bootstrap, 기존 provider 제약 갱신까지 연결했습니다.
 - **API 모델 배정은 development 팩 스코프만 보도록 정리됐습니다** - 기본 개발 배정 흐름에서 다른 오피스팩 부서를 섞어 보여주지 않습니다.
+- **로컬 E2E 검증이 더 안전하고 깔끔해졌습니다** - `pnpm run test:e2e`가 Playwright 실행 전후로 격리 런타임을 초기화하고, 기존 `8810` 서버 재사용도 명시적으로 opt-in 할 때만 동작합니다.
 
 - 상세 문서: [`docs/releases/v2.0.4.md`](docs/releases/v2.0.4.md)
 - API 문서: [`docs/api.md`](docs/api.md), [`docs/openapi.json`](docs/openapi.json)
@@ -694,6 +695,8 @@ curl -fsS http://127.0.0.1:8790/healthz
 4. `pnpm run lint`
 5. `pnpm exec playwright install --with-deps`
 6. `pnpm run test:ci` (`test:web --coverage` + `test:api --coverage` + `test:e2e`)
+
+참고: `pnpm run test:e2e`는 이제 격리된 `.tmp/e2e-runtime` DB를 띄운 뒤 실행이 끝나면 다시 정리합니다. 이미 떠 있는 로컬 `8810` 서버를 일부러 재사용하려는 경우에만 `PW_REUSE_EXISTING_SERVER=1`을 설정하세요.
 
 PR 전 로컬 권장 점검:
 

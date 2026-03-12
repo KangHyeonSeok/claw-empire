@@ -76,6 +76,7 @@ Claw-Empire transforms your AI coding assistants — connected via **CLI**, **OA
 - **Settings > API now supports official direct-API presets** - OpenCode Go and Bailian Coding Plan presets lock the expected Base URL, seed fallback models immediately, and keep refresh/retry behavior explicit.
 - **Kimi Code is now supported end to end** - Kimi is wired through CLI execution, provider labels, skills learn/unlearn flow, prompt-skill rendering, video-preprod bootstrap, and provider-aware schema/runtime checks.
 - **API model assignment now stays scoped to the development pack** - the assign flow no longer mixes unrelated office-pack departments into the default development assignment path.
+- **Local E2E validation is safer and cleaner** - `pnpm run test:e2e` now resets the isolated runtime before and after Playwright runs, and existing `8810` servers are no longer reused unless you explicitly opt in.
 
 - Full notes: [`docs/releases/v2.0.4.md`](docs/releases/v2.0.4.md)
 - API docs: [`docs/api.md`](docs/api.md), [`docs/openapi.json`](docs/openapi.json)
@@ -694,6 +695,8 @@ On every pull request, `.github/workflows/ci.yml` runs:
 4. `pnpm run lint`
 5. `pnpm exec playwright install --with-deps`
 6. `pnpm run test:ci` (`test:web --coverage` + `test:api --coverage` + `test:e2e`)
+
+Note: `pnpm run test:e2e` now boots an isolated `.tmp/e2e-runtime` database and clears it again after the run. Set `PW_REUSE_EXISTING_SERVER=1` only when you intentionally want to reuse an already-running local server on `8810`.
 
 Recommended local pre-PR check:
 

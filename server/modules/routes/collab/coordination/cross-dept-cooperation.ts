@@ -562,6 +562,14 @@ export function createCrossDeptCooperationTools(deps: CrossDeptCooperationDeps) 
             "Task-scoped session: keep continuity only for this collaboration task.",
             spawnPrompt,
           ].join("\n");
+          const finalizeCrossDeptRun = (exitCode: number) => {
+            const linked = delegatedTaskToSubtask.get(crossTaskId);
+            if (linked) {
+              handleSubtaskDelegationComplete(crossTaskId, linked, exitCode);
+            } else {
+              handleTaskRunComplete(crossTaskId, exitCode);
+            }
+          };
 
           appendTaskLog(crossTaskId, "system", `RUN start (agent=${execAgent.name}, provider=${execProvider})`);
           if (execProvider === "api") {
@@ -576,6 +584,7 @@ export function createCrossDeptCooperationTools(deps: CrossDeptCooperationDeps) 
               logFilePath,
               controller,
               fakePid,
+              finalizeCrossDeptRun,
             );
           } else if (execProvider === "copilot" || execProvider === "antigravity") {
             const controller = new AbortController();
@@ -589,6 +598,7 @@ export function createCrossDeptCooperationTools(deps: CrossDeptCooperationDeps) 
               controller,
               fakePid,
               execAgent.oauth_account_id ?? null,
+              finalizeCrossDeptRun,
             );
           } else {
             const crossModelConfig = getProviderModelConfig();
@@ -602,18 +612,11 @@ export function createCrossDeptCooperationTools(deps: CrossDeptCooperationDeps) 
               execProvider,
               sessionPrompt,
               projPath,
-              logFilePath,
-              crossModel,
-              crossReasoningLevel,
-            );
-            child.on("close", (code: number | null) => {
-              const linked = delegatedTaskToSubtask.get(crossTaskId);
-              if (linked) {
-                handleSubtaskDelegationComplete(crossTaskId, linked, code ?? 1);
-              } else {
-                handleTaskRunComplete(crossTaskId, code ?? 1);
-              }
-            });
+                logFilePath,
+                crossModel,
+                crossReasoningLevel,
+              );
+            child.on("close", (code: number | null) => finalizeCrossDeptRun(code ?? 1));
           }
 
           notifyCeo(
